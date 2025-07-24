@@ -109,17 +109,8 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - .:/app
-
-  web:
-    image: nginx:alpine
-    container_name: chat-web
-    volumes:
-      - ./web:/usr/share/nginx/html:ro
-    ports:
-      - "80:80"
-    depends_on:
-      - backend
+      - ./.env:/app/.env
+      - ./web:/app/web
 
 volumes:
   redpanda-data-0:
