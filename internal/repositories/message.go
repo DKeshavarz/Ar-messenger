@@ -12,6 +12,8 @@ import (
 	"github.com/twmb/franz-go/pkg/kgo"
 )
 
+var counter = 0
+
 type RedpandaMessageRepository struct {
 	client      *kgo.Client
 	adminClient *kadm.Client
@@ -57,7 +59,7 @@ func (r *RedpandaMessageRepository) PublishMessage(ctx context.Context, chatID s
 	r.client.Produce(ctx, &kgo.Record{
 		Topic: topic,
 		Value: b,
-		// Key:   []byte(msg.ID), // For consistent partitioning
+		Key:   []byte(msg.RoomName), // For consistent partitioning
 	}, func(_ *kgo.Record, err error) {
 		if err != nil {
 			errCh <- fmt.Errorf("failed to produce message: %w", err)
@@ -77,17 +79,20 @@ func (r *RedpandaMessageRepository) PublishMessage(ctx context.Context, chatID s
 func (r *RedpandaMessageRepository) ConsumeMessages(ctx context.Context, chatID string, broadcast chan<- models.Message) error {
 	topic := "room-" + chatID
 
+	consumerGroupID := fmt.Sprintf("chatapp-group-%s", chatID)
 	client, err := kgo.NewClient(
 		kgo.SeedBrokers(r.brokers...),
-		kgo.ConsumerGroup("chatapp-group-"+chatID),
+		kgo.ConsumerGroup(consumerGroupID),
 		kgo.ConsumeTopics(topic),
 		kgo.BlockRebalanceOnPoll(),
+		kgo.ConsumeResetOffset(kgo.NewOffset().AtStart()),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to create consumer client: %w", err)
 	}
 	defer client.Close()
 
+	fmt.Printf("Starting consumer for room %s with group %s\n", chatID, consumerGroupID)
 	for {
 		select {
 		case <-ctx.Done():
@@ -101,16 +106,65 @@ func (r *RedpandaMessageRepository) ConsumeMessages(ctx context.Context, chatID 
 				log.Printf("consumer errors: %v", errs)
 				continue
 			}
-
-			fetches.EachRecord(func(r *kgo.Record) {
+			iter := fetches.RecordIter()
+			for !iter.Done() {
+				record := iter.Next()
 				var msg models.Message
-				if err := json.Unmarshal(r.Value, &msg); err != nil {
-					log.Printf("failed to unmarshal message: %v", err)
-					return
+				if err := json.Unmarshal(record.Value, &msg); err != nil {
+					fmt.Printf("Error decoding message: %v\n", err)
+					continue
 				}
-				log.Printf("consumed message from partition %d at offset %d", r.Partition, r.Offset)
+				log.Printf("Consumed message: content=%s, room=%s, user=%s, partition=%d, offset=%d\n",
+					msg.Content, msg.RoomName, msg.Username, record.Partition, record.Offset)
+
 				broadcast <- msg
-			})
+			}
+		}
+	}
+}
+
+func (r *RedpandaMessageRepository) GetMessageHistory(ctx context.Context, chatID string, msgs chan<- models.Message) error {
+	topic := "room-" + chatID
+
+	client, err := kgo.NewClient(
+		kgo.SeedBrokers(r.brokers...),
+		kgo.ConsumeTopics(topic),
+		kgo.ConsumeResetOffset(kgo.NewOffset().AtStart()),
+	)
+	if err != nil {
+		return fmt.Errorf("failed to create history client: %w", err)
+	}
+	defer client.Close()
+
+	timeoutCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+
+	for {
+		select {
+		case <-timeoutCtx.Done():
+			return nil
+		default:
+			fetches := client.PollFetches(timeoutCtx)
+			if fetches.IsClientClosed() {
+				return nil
+			}
+			if errs := fetches.Errors(); len(errs) > 0 {
+				log.Printf("History fetch errors: %v", errs)
+				continue
+			}
+
+			iter := fetches.RecordIter()
+			for !iter.Done() {
+				record := iter.Next()
+
+				var msg models.Message
+				if err := json.Unmarshal(record.Value, &msg); err != nil {
+					log.Printf("Error decoding history message: %v", err)
+					continue
+				}
+
+				msgs <- msg
+			}
 		}
 	}
 }
