@@ -6,12 +6,13 @@ import (
 
 	"github.com/DKeshavarz/Ar-messenger/internal/config"
 	"github.com/DKeshavarz/Ar-messenger/internal/handlers"
+	"github.com/DKeshavarz/Ar-messenger/internal/repositories"
 	"github.com/DKeshavarz/Ar-messenger/internal/services"
 	"github.com/gorilla/mux"
 )
 
 func main(){
-	svc := services.NewRoomService(nil) // Replace nil with an actual MessageRepository implementation
+	svc := services.NewRoomService(repositories.NewHavigRepo()) // Replace nil with an actual MessageRepository implementation
     handler := handlers.NewWebSocketHandler(svc)
 
     router := mux.NewRouter()
