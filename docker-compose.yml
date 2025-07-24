@@ -12,12 +12,13 @@ services:
       - --overprovisioned
       - --node-id 0
       - --check=false
-      - --kafka-addr=PLAINTEXT://0.0.0.0:9092
-      - --advertise-kafka-addr=PLAINTEXT://redpanda-0:9092
+      - --kafka-addr internal://0.0.0.0:9092,external://0.0.0.0:19092
+      - --advertise-kafka-addr internal://redpanda-0:9092,external://localhost:19092
       - --rpc-addr=0.0.0.0:33145
       - --advertise-rpc-addr=redpanda-0:33145
       - --seeds=redpanda-0:33145,redpanda-1:33146,redpanda-2:33147
     ports:
+      - "19092:19092"
       - "9092:9092"
       - "9644:9644"
     volumes:
@@ -39,12 +40,13 @@ services:
       - --overprovisioned
       - --node-id 1
       - --check=false
-      - --kafka-addr=PLAINTEXT://0.0.0.0:9093
-      - --advertise-kafka-addr=PLAINTEXT://redpanda-1:9093
+      - --kafka-addr internal://0.0.0.0:9093,external://0.0.0.0:19093
+      - --advertise-kafka-addr internal://redpanda-1:9093,external://localhost:19093
       - --rpc-addr=0.0.0.0:33146
       - --advertise-rpc-addr=redpanda-1:33146
       - --seeds=redpanda-0:33145,redpanda-1:33146,redpanda-2:33147
     ports:
+      - "19093:19093"
       - "9093:9093"
       - "9645:9644"
     volumes:
@@ -66,12 +68,13 @@ services:
       - --overprovisioned
       - --node-id 2
       - --check=false
-      - --kafka-addr=PLAINTEXT://0.0.0.0:9094
-      - --advertise-kafka-addr=PLAINTEXT://redpanda-2:9094
+      - --kafka-addr internal://0.0.0.0:9094,external://0.0.0.0:19094
+      - --advertise-kafka-addr internal://redpanda-2:9094,external://localhost:19094
       - --rpc-addr=0.0.0.0:33147
       - --advertise-rpc-addr=redpanda-2:33147
       - --seeds=redpanda-0:33145,redpanda-1:33146,redpanda-2:33147
     ports:
+      - "19094:19094"
       - "9094:9094"
       - "9646:9644"
     volumes:
@@ -83,16 +86,16 @@ services:
       retries: 5
 
   redpanda-console:
-    image: redpandadata/console
+    image: docker.redpanda.com/redpandadata/console:latest
     container_name: redpanda-console
     ports:
-      - "8081:8081"
+      - "8081:8080"
+    environment:
+      KAFKA_BROKERS: "redpanda-0:9092,redpanda-1:9092,redpanda-2:9092"
     depends_on:
       - redpanda-0
-    environment:
-      REDPANDA_BROKER: redpanda-0:9092
-      REDPANDA_CONSOLE_USERNAME: admin
-      REDPANDA_CONSOLE_PASSWORD: admin
+      - redpanda-1
+      - redpanda-2
 
   backend:
     build:
@@ -102,7 +105,7 @@ services:
     depends_on:
       - redpanda-0
     environment:
-      REDPANDA_BROKER: redpanda-0:9092,redpanda-1:9093,redpanda-2:9094
+      REDPANDA_BROKER: ${REDPANDA_BROKERS}
     ports:
       - "8080:8080"
     volumes:
