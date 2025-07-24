@@ -23,14 +23,25 @@ function startWebSocket() {
 
     ws.onopen = () => {
         messages.innerHTML += `<div>Joined room ${chatID}</div>`;
+        console.log('Received message:');
     };
 
     ws.onmessage = (event) => {
-        const msg = JSON.parse(event.data);
-        const div = document.createElement('div');
-        div.textContent = `${msg.username}: ${msg.text}`;
-        messages.appendChild(div);
-        messages.scrollTop = messages.scrollHeight;
+        console.log('Received message:');
+        try {
+            const msg = JSON.parse(event.data);
+            console.log('Received message:', msg);
+            if (!msg.username || !msg.text || msg.chatid !== chatID) {
+                console.log('Invalid message received:', msg);
+                //return;
+            }
+            const div = document.createElement('div');
+            div.textContent = `${msg.username}: ${msg.content}`;
+            messages.appendChild(div);
+            messages.scrollTop = messages.scrollHeight;
+        } catch (err) {
+            console.error('Failed to parse message:', err, 'Data:', event.data);
+        }
     };
 
     ws.onclose = () => {
