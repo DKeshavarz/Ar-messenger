@@ -112,7 +112,6 @@ services:
       - "8080:8080"
     volumes:
       - ./.env:/app/.env
-      - ./web:/app/web
 
 volumes:
   redpanda-data-0:
