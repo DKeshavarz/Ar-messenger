@@ -15,7 +15,7 @@ import (
 
 func main() {
 	if err := config.LoadEnv(); err != nil {
-		log.Fatalf("Failed to load .env: %v", err)
+		log.Printf("Warning: Failed to load .env file: %v (using system environment variables)", err)
 	}
 
 	brokersEnv := config.GetEnvValue("REDPANDA_BROKERS")
@@ -40,8 +40,8 @@ func main() {
 	}).Methods("GET")
 
 	http.Handle("/", router)
-	http.Handle("/style.css", http.FileServer(http.Dir("web")))
-	http.Handle("/main.js", http.FileServer(http.Dir("web")))
+	fs := http.FileServer(http.Dir("web/assets"))
+	http.Handle("/assets/", http.StripPrefix("/assets/", fs))
 
 	log.Println("Server starting on :" + config.GetEnvValue("SERVER_PORT"))
 	log.Fatal(http.ListenAndServe(":"+config.GetEnvValue("SERVER_PORT"), nil))
