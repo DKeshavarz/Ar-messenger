@@ -8,7 +8,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}/messenger 
+  IMAGE_NAME: dkeshavarz/ar-messenger/messenger
 
 jobs:
   build-and-push:
