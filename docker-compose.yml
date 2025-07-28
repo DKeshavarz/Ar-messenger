@@ -104,6 +104,8 @@ services:
     container_name: chat-backend
     depends_on:
       - redpanda-0
+      - redpanda-1
+      - redpanda-2
     environment:
       REDPANDA_BROKER: ${REDPANDA_BROKERS}
     ports:
