@@ -14,10 +14,6 @@ import (
 )
 
 func main() {
-	if err := config.LoadEnv(); err != nil {
-		log.Printf("Warning: Failed to load .env file: %v (using system environment variables)", err)
-	}
-
 	brokersEnv := config.GetEnvValue("REDPANDA_BROKERS")
 	if brokersEnv == "" {
 		log.Fatal("REDPANDA_BROKERS env not set")
