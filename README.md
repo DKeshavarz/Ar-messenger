@@ -1,4 +1,3 @@
-```markdown
 # Multi-Room Messenger App
 
 A Go-based chat application with multiple rooms, using WebSocket for real-time communication and Redpanda as the message broker.
@@ -18,7 +17,7 @@ A Go-based chat application with multiple rooms, using WebSocket for real-time c
 1. **Clone the Repository**:
    ```bash
    git clone <repository-url>
-   cd chatapp
+   cd Ar-messenger
    ```
 
 2. **Install Dependencies**:
@@ -27,36 +26,21 @@ A Go-based chat application with multiple rooms, using WebSocket for real-time c
    ```
 
 3. **Configure Environment**:
-   - Copy `.env.example` to `.env`:
-     ```bash
-     cp .env.example .env
-     ```
-   - Edit `.env` to match your environment. Example:
-     ```env
-     REDPANDA_BROKERS=localhost:9092
-     SERVER_PORT=8080
-     ```
+   Copy `.env.example` to `.env`:
+   ```bash
+   cp .env.example .env
+   ```
+   and then set the correct address for configurations
 
-4. **Start Redpanda**:
+4. **Start chat**:
    ```bash
    docker-compose up -d
    ```
 
-5. **Run the Server**:
-   ```bash
-   go run cmd/chatapp/main.go
-   ```
-
-6. **Access the App**:
+5. **Access the App**:
    - Open `http://localhost:8080` in a browser.
    - Enter a username and chat room (e.g., `room1`).
    - Send and receive messages in real-time.
-
-## Testing
-- Run unit tests:
-  ```bash
-  go test ./tests/...
-  ```
 
 ## Usage
 - Join a room: Enter a username and room ID (e.g., `room1`) in the web interface.
@@ -65,14 +49,12 @@ A Go-based chat application with multiple rooms, using WebSocket for real-time c
 
 ## Project Structure
 ```
-chatapp/
-├── cmd/chatapp/main.go         # Entry point
+Ar-messenger/
+├── cmd/messenger/main.go         # Entry point
 ├── internal/                   # Application logic
-├── web/                        # Frontend files
-├── tests/                      # Unit tests
+├── web/                        # Frontend static files
 ├── .env.example                # Sample environment variables
 ├── .gitignore                  # Git ignore rules
-├── docker-compose.yml          # Redpanda setup
+├── docker-compose.yml          # Redpanda and chat setup
 └── go.mod                      # Go module definition
-```
 ```
