@@ -15,7 +15,6 @@ FROM alpine:latest
 RUN adduser -D appuser
 WORKDIR /app
 COPY --from=builder /app/messenger .
-COPY --from=builder /app/web ./web
 USER appuser
 
 EXPOSE 8080
