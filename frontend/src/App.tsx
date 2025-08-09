@@ -31,7 +31,10 @@ function App() {
   };
 
   const startWebSocket = (username: string, chatid: string) => {
-    const wsUrl = `ws://localhost:8080/${chatid}/username?username=${encodeURIComponent(username)}`;
+    const baseurl =  `${import.meta.env.VITE_SERVER_URL}`;
+    const baseport = `${import.meta.env.VITE_SERVER_PORT}`;
+    console.log("urlllllll: ", baseurl, ":", baseport)
+    const wsUrl = `ws://${baseurl}:${baseport}/${chatid}/username?username=${encodeURIComponent(username)}`;
     ws.current = new WebSocket(wsUrl);
     
     ws.current.onopen = () => {
