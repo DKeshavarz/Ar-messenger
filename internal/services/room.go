@@ -11,7 +11,6 @@ import (
 type MessageRepository interface {
     PublishMessage(ctx context.Context, chatID string, msg models.Message) error
     ConsumeMessages(ctx context.Context, chatID string, broadcast chan<- models.Message) error
-    GetMessageHistory(ctx context.Context, chatID string, msgs chan<- models.Message) error
 }
 
 type RoomService struct {
