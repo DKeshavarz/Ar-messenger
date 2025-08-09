@@ -107,12 +107,28 @@ services:
       - redpanda-1
       - redpanda-2
     environment:
-      REDPANDA_BROKER: ${REDPANDA_BROKERS}
+      REDPANDA_BROKERS: ${REDPANDA_BROKERS}
+      SERVER_PORT: 8080
     ports:
       - "8080:8080"
     volumes:
       - ./.env:/app/.env
       - ./web:/app/web
+
+  front:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        SERVER_URL: ${SERVER_URL}
+        SERVER_PORT: ${SERVER_PORT}
+    container_name: frontend
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+
+
 
 volumes:
   redpanda-data-0:
