@@ -35,14 +35,12 @@ func main() {
 
 	router := mux.NewRouter()
 	router.HandleFunc("/{chatName}/username", handler.HandleWebSocket)
-	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "web/index.html")
-	}).Methods("GET")
-
+	
 	http.Handle("/", router)
-	fs := http.FileServer(http.Dir("web/assets"))
-	http.Handle("/assets/", http.StripPrefix("/assets/", fs))
-
+	// router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	// 	http.ServeFile(w, r, "web/index.html")
+	// }).Methods("GET")
+	
 	log.Println("Server starting on :" + config.GetEnvValue("SERVER_PORT"))
 	log.Fatal(http.ListenAndServe(":"+config.GetEnvValue("SERVER_PORT"), nil))
 }
